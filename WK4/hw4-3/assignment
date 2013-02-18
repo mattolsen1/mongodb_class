@@ -1,0 +1,178 @@
+Home Page:
+pymongo query:  posts.find().sort('date', direction=-1).limit(10)
+shell query:  db.posts.find().sort({date:-1}).limit(10).explain()
+index create:  db.posts.ensureIndex({date:-1})
+
+Before
+db.posts.find().sort({date:-1}).limit(10).explain()
+{
+   "cursor" : "BasicCursor",
+   "isMultiKey" : false,
+   "n" : 10,
+   "nscannedObjects" : 1000,
+   "nscanned" : 1000,
+   "nscannedObjectsAllPlans" : 1000,
+   "nscannedAllPlans" : 1000,
+   "scanAndOrder" : true,
+   "indexOnly" : false,
+   "nYields" : 0,
+   "nChunkSkips" : 0,
+   "millis" : 11,
+   "indexBounds" : {
+       
+   },
+   "server" : "xxxx.local:27017"
+}
+
+After
+db.posts.find().sort({date:-1}).limit(10).explain()
+{
+   "cursor" : "BtreeCursor date_-1",
+   "isMultiKey" : false,
+   "n" : 10,
+   "nscannedObjects" : 10,
+   "nscanned" : 10,
+   "nscannedObjectsAllPlans" : 10,
+   "nscannedAllPlans" : 10,
+   "scanAndOrder" : false,
+   "indexOnly" : false,
+   "nYields" : 0,
+   "nChunkSkips" : 0,
+   "millis" : 0,
+   "indexBounds" : {
+       "date" : [
+           [
+               {
+                   "$maxElement" : 1
+               },
+               {
+                   "$minElement" : 1
+               }
+           ]
+       ]
+   },
+   "server" : "xxxx.local:27017"
+----------------------------------------------------------------------------------------------------------------------
+Tags Page:
+pymongo:  posts.find({'tags':tag}).sort('date', direction=-1).limit(10)
+shell:  db.posts.find({tags:'trade'}).sort({date: -1}).limit(10).explain()
+index: db.posts.ensureIndex({tags:1, date:-1})
+
+Before
+db.posts.find({tags:'trade'}).sort({date: -1}).limit(10).explain()
+{
+   "cursor" : "BtreeCursor date_-1",
+   "isMultiKey" : false,
+   "n" : 7,
+   "nscannedObjects" : 1000,
+   "nscanned" : 1000,
+   "nscannedObjectsAllPlans" : 2000,
+   "nscannedAllPlans" : 2000,
+   "scanAndOrder" : false,
+   "indexOnly" : false,
+   "nYields" : 0,
+   "nChunkSkips" : 0,
+   "millis" : 10,
+   "indexBounds" : {
+       "date" : [
+           [
+               {
+                   "$maxElement" : 1
+               },
+               {
+                   "$minElement" : 1
+               }
+           ]
+       ]
+   },
+   "server" : "xxxx.local:27017"
+}
+
+After
+db.posts.find({tags:'trade'}).sort({date: -1}).limit(10).explain()
+{
+   "cursor" : "BtreeCursor tags_1_date_-1",
+   "isMultiKey" : true,
+   "n" : 7,
+   "nscannedObjects" : 7,
+   "nscanned" : 7,
+   "nscannedObjectsAllPlans" : 7,
+   "nscannedAllPlans" : 7,
+   "scanAndOrder" : false,
+   "indexOnly" : false,
+   "nYields" : 0,
+   "nChunkSkips" : 0,
+   "millis" : 0,
+   "indexBounds" : {
+       "tags" : [
+           [
+               "trade",
+               "trade"
+           ]
+       ],
+       "date" : [
+           [
+               {
+                   "$maxElement" : 1
+               },
+               {
+                   "$minElement" : 1
+               }
+           ]
+       ]
+   },
+   "server" : "xxxx.local:27017"
+}
+
+----------------------------------------------------------------------------------------------------------------------
+Post
+pymongo:  posts.find_one({'permalink':permalink})
+shell:  db.posts.find({permalink:'XzZPYnVGVtxLPhkPBjtb'}).explain()
+index:  db.posts.ensureIndex({permalink:1})
+
+Before
+db.posts.find({permalink:'XzZPYnVGVtxLPhkPBjtb'}).explain()
+{
+   "cursor" : "BasicCursor",
+   "isMultiKey" : false,
+   "n" : 1,
+   "nscannedObjects" : 1000,
+   "nscanned" : 1000,
+   "nscannedObjectsAllPlans" : 1000,
+   "nscannedAllPlans" : 1000,
+   "scanAndOrder" : false,
+   "indexOnly" : false,
+   "nYields" : 0,
+   "nChunkSkips" : 0,
+   "millis" : 3,
+   "indexBounds" : {
+       
+   },
+   "server" : "xxxx.local:27017"
+}
+
+After
+db.posts.find({permalink:'XzZPYnVGVtxLPhkPBjtb'}).explain()
+{
+   "cursor" : "BtreeCursor permalink_1",
+   "isMultiKey" : false,
+   "n" : 1,
+   "nscannedObjects" : 1,
+   "nscanned" : 1,
+   "nscannedObjectsAllPlans" : 1,
+   "nscannedAllPlans" : 1,
+   "scanAndOrder" : false,
+   "indexOnly" : false,
+   "nYields" : 0,
+   "nChunkSkips" : 0,
+   "millis" : 0,
+   "indexBounds" : {
+       "permalink" : [
+           [
+               "XzZPYnVGVtxLPhkPBjtb",
+               "XzZPYnVGVtxLPhkPBjtb"
+           ]
+       ]
+   },
+   "server" : "xxxx.local:27017"
+}
