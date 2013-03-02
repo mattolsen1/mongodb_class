@@ -1,0 +1,51 @@
+//Homework 5.1:  Finding the most frequent author of comments on your blog
+db.posts.aggregate([
+    {$unwind: '$comments'}, 
+    {$group: {_id: '$comments.author', count: {$sum: 1}}}, 
+    {$sort:{count:-1}}
+    ])
+
+//Homework 5.2:  Crunching the Zipcode dataset
+db.zips.aggregate([ 
+    {$match: {state: {$in: ["NY", "CA"]}}},
+    {$group: {_id: {state: '$state', city: '$city'}, citypop: {$sum: "$pop"}}},
+    {$match: {citypop: {$gt: 25000}}},
+    {$group: {_id: null, totalaverage: {$avg: "$citypop"}}}
+    ])
+
+//Homework 3:  Who's the easiest grader on campus?
+db.grades.aggregate([
+    /*unwind scores*/
+    {$unwind: '$scores'},
+    /*match only non-quiz scores*/
+    {$match: {'scores.type': {$ne:'quiz'}}},
+    /*group on student and class to get average*/
+    {$group:{_id:{'student':'$student_id', 'class':'$class_id'},
+    /*get the average score for each student in each class*/
+    student_average:{$avg:'$scores.score'}}},
+    /*now average the classes with the student_average*/
+    {$group: {_id:{'class':"$_id.class"}, class_average:{$avg:"$student_average"}}},
+    /*peform a sort to make it easy to read*/
+     {$sort: {'class_average':1}}])
+    ])
+
+//Homework 4:  Removing Rural Residents
+db.zips.aggregate([
+    /*project just the items we need*/
+    {$project: 
+     {first_char: {$substr : ["$city",0,1]},
+     _id: 0,
+     pop: 1
+     }   
+   },
+   /*now only match where the city has a digit in the beginning*/
+   {$match: {'first_char': {$in: ["0","1","2","3","4","5","6","7","8","9"]}}},
+   /*group on all and sum up the population*/
+   {$group: {_id: '', total: {$sum: '$pop'}}}
+])
+
+
+
+
+
+
